@@ -1,45 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        input[type="number"] {
-            width: 60px;
-        }
-        table {
-            width: 100%;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-        @media(max-width: 600px) {
-            th, td {
-                padding: 5px;
-                font-size: 0.9em;
-            }
-            input[type="number"] {
-                width: 50px;
-            }
-        }
-    </style>
+  <title>1RepMax calculator (vanilla JS)</title>
 </head>
 <body>
+    <style>
+        
+        body {
+            font-family: Verdana, Arial, sans-serif;
+        }
+        
+        small {
+          font-size: 50%;
+        }
+         
+        label {
+          font-size: 120%;
+        }
+        
+        input[type="number"] {
+          margin: 0.1em 0.5em;
+          width: 60px;
+          font-size:105%;
+        }
+        
+        th, td {
+            padding: 5px 10px;
+            text-align: center;
+            font-size:150%;
+        }
+        
+        @media(max-width: 600px) {
+            th, td {
+                padding: 1px 20px;
+                font-size: 130%;
+            }
+        }
+        
+    </style>
+
 	<br>
-    <label>Reps
-        <input id="numReps" type="number" min="1" step="1" value="1" />
+
+    <label># Reps
+        <input
+id="numReps"
+type="number"
+min="1"
+step="1"
+placeholder="1"
+autofocus
+/>
     </label>
-    
+
+    <br>
+
     <label>Weight 
-        <input id="weight" type="number" min="1" step="0.1" value="100" />
+        <input
+id="weight"
+type="number"
+min="1"
+step="0.1"
+placeholder="100"
+/>
     </label>
     
     <hr />
-	 <label for="maxReps" id="maxRepsLabel" data-text="Show ($) rows"></label>
+    
+    <label
+for="maxReps"
+id="maxRepsLabel"
+data-text="Show ($) rows"
+></label>
 	
-        <input id="maxReps" type="number" min="3" max="100" step="1" placeholder="10" />
+        <input
+id="maxReps"
+type="number"
+min="3"
+max="100"
+step="1"
+placeholder="10"
+/>
         
   <hr />
   
@@ -55,47 +95,41 @@
     </table>
 
     <script>
-        var PLACES = 3;
+        var PLACES = 1;
+        
+        var doc = document;
+        var qi = doc.getElementById.bind(doc);
       
-    	var numRepsInput = document.getElementById("numReps");
+    	var numRepsInput = qi("numReps");
     
-        var weightInput = document.getElementById("weight");
+        var weightInput = qi("weight");
         
-        var maxRepsInput = document.getElementById("maxReps");
+        var maxRepsInput = qi("maxReps");
         
-        var maxRepsLabel = document.getElementById("maxRepsLabel");
+        var maxRepsLabel = qi("maxRepsLabel");
         
-        var outputTable = document.getElementById("output");
+        var outputTable = qi("output");
 
-function reverseFooForWeight(onemax, reps) {
+
+
+var weightFromReps = function(onemax, reps) {
     return onemax / (reps > 1 ? (1 + reps / 30) : 1);
-}
+};
 
-function reverseFooForReps(onemax, weight) {
+var repsFromWeight = function(onemax, weight) {
     return (onemax/weight - 1) * 30;
-}
+};
 
-var getEpley = function(weight1RM, reps){
+var getEpley = function(weight1RM, reps) {
+ 
+  var weight = weightFromReps(weight1RM, reps);
   
-  var result, ratio,  weight;
+  var percentage = ( weight / weight1RM) * 100;
   
-  /*
-weight = (
-reps === 1
-? x
-:
-
-ratio = ( 1.0278 - (0.0278 * reps) ) * 100;
-
-weight = weight1RM * (ratio / 100);
-*/
-
-weight = reverseFooForWeight(weight1RM, reps);
-ratio = ( weight / weight1RM) * 100;
+  var result = weight.toFixed(PLACES) + `&nbsp;&nbsp;<small>(${Math.round(percentage, 2)}%)</small>`;
   
-  var result = weight.toFixed(PLACES) + ` (${Math.round(ratio, 2)}%)`;
   return result;
- };
+};
  
         var calculate = function(evt) {
           
@@ -131,7 +165,7 @@ ratio = ( weight / weight1RM) * 100;
                 var cellWeight = document.createElement("td");
                 cellReps.textContent = i;
                 
-                cellWeight.textContent = getEpley(maxWeight, i);
+                cellWeight.innerHTML = getEpley(maxWeight, i); // textContent
 
                 row.appendChild(cellReps);
                 row.appendChild(cellWeight);
