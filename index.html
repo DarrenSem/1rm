@@ -4,185 +4,205 @@
   <title>1RepMax calculator (vanilla JS)</title>
 </head>
 <body>
-    <style>
-        
-        body {
-            font-family: Verdana, Arial, sans-serif;
-        }
-        
-        small {
-          font-size: 50%;
-        }
-         
-        label {
-          font-size: 120%;
-        }
-        
-        input[type="number"] {
-          margin: 0.1em 0.5em;
-          width: 60px;
-          font-size:105%;
-        }
-        
-        th, td {
-            padding: 5px 10px;
-            text-align: center;
-            font-size:150%;
-        }
-        
-        @media(max-width: 600px) {
-            th, td {
-                padding: 1px 20px;
-                font-size: 130%;
-            }
-        }
-        
-    </style>
 
-	<br>
+<style>
 
-    <label># Reps
-        <input
-id="numReps"
-type="number"
-min="1"
-step="1"
-placeholder="1"
-autofocus
-/>
-    </label>
+  body {
+    font-family: Verdana, Arial, sans-serif;
+  }
 
-    <br>
+  small {
+    font-size: 50%;
+  }
 
-    <label>Weight 
-        <input
-id="weight"
-type="number"
-min="1"
-step="0.1"
-placeholder="100"
-/>
-    </label>
-    
-    <hr />
-    
-    <label
-for="maxReps"
-id="maxRepsLabel"
-data-text="Show ($) rows"
+  label {
+    font-size: 120%;
+  }
+
+  input[type="number"] {
+    margin: 0.1em 0.5em;
+    width: 60px;
+    font-size:105%;
+  }
+
+  th, td {
+    padding: 5px 10px;
+    text-align: center;
+    font-size:150%;
+  }
+
+  @media(max-width: 600px) {
+    th, td {
+      padding: 1px 20px;
+      font-size: 130%;
+    }
+  }
+
+</style>
+
+<br>
+
+<label># Reps
+  <input
+  id="numReps"
+  type="number"
+  min="1"
+  step="1"
+  placeholder="1"
+  autofocus
+  />
+</label>
+
+<br>
+
+<label>Weight 
+  <input
+  id="weight"
+  type="number"
+  min="1"
+  step="0.1"
+  placeholder="100"
+  />
+</label>
+
+<hr />
+
+<label
+  for="maxReps"
+  id="maxRepsLabel"
+  data-text="Show ($) rows"
 ></label>
-	
-        <input
-id="maxReps"
-type="number"
-min="3"
-max="100"
-step="1"
-placeholder="10"
+
+<input
+  id="maxReps"
+  type="number"
+  min="3"
+  max="100"
+  step="1"
+  placeholder="10"
 />
-        
-  <hr />
-  
-    <table>
-        <thead>
-            <tr>
-                <th>Reps</th>
-                <th>Weight</th>
-            </tr>
-        </thead>
-        <tbody id="output">
-        </tbody>
-    </table>
 
-    <script>
-        var PLACES = 1;
-        
-        var doc = document;
-        var qi = doc.getElementById.bind(doc);
-      
-    	var numRepsInput = qi("numReps");
-    
-        var weightInput = qi("weight");
-        
-        var maxRepsInput = qi("maxReps");
-        
-        var maxRepsLabel = qi("maxRepsLabel");
-        
-        var outputTable = qi("output");
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>Reps</th>
+      <th>Weight</th>
+    </tr>
+  </thead>
+  <tbody id="outputTableBody"></tbody>
+</table>
+
+<script>
+
+const WEIGHT_DISPLAY_PLACES = 1;
+const WEIGHT_PERCENT_PLACES = 2;
+
+const doc = document;
+
+const qi = doc.getElementById.bind(doc);
+
+const numRepsInput = qi("numReps");
+const weightInput = qi("weight");
+const maxRepsInput = qi("maxReps");
 
 
 
-var weightFromReps = function(onemax, reps) {
-    return onemax / (reps > 1 ? (1 + reps / 30) : 1);
+const oneRepMaxFromRepsAndWeight_Epley = (reps, weight) => {
+  return weight * ( 1 + ( reps > 1 ? reps / 30 : 0) );
 };
 
-var repsFromWeight = function(onemax, weight) {
-    return (onemax/weight - 1) * 30;
+const weightFromRepsAtOneRepMax_Epley = (reps, oneRepMax) => {
+  return oneRepMax / ( reps > 1 ? ( 1 + reps / 30 ) : 1 );
 };
 
-var getEpley = function(weight1RM, reps) {
- 
-  var weight = weightFromReps(weight1RM, reps);
-  
-  var percentage = ( weight / weight1RM) * 100;
-  
-  var result = weight.toFixed(PLACES) + `&nbsp;&nbsp;<small>(${Math.round(percentage, 2)}%)</small>`;
-  
-  return result;
+// const repsFromWeightAtOneRepMax_Epley = (weight, oneRepMax) => {
+//   return ( oneRepMax / weight - 1 ) * 30;
+// };
+
+
+
+const oneRepMaxFromRepsAndWeight = (reps, weight) => { // calc 1RM based on provided weight and # of reps
+  return oneRepMaxFromRepsAndWeight_Epley(reps, weight);
 };
- 
-        var calculate = function(evt) {
-          
-            var numReps = numRepsInput.valueAsNumber >= 1 ? numRepsInput.valueAsNumber : 1;
-            
-            var weight = weightInput.valueAsNumber >= 1 ? weightInput.valueAsNumber : 100;
 
-            var maxReps = maxRepsInput.valueAsNumber >= maxRepsInput.min ? maxRepsInput.valueAsNumber : maxRepsInput.placeholder;
-            maxReps = Math.min(maxReps, maxRepsInput.max) | 0; // Cap at 30
-            maxRepsLabel.innerText = maxRepsLabel.dataset.text.replace("$", maxReps);
-            
-            
-            var validMax = (
-              isNaN(maxRepsInput.value)
-              || maxRepsInput.value >= maxRepsInput.min
-              || false
-            );
-            
-            if(validMax ||
-["weight", "numReps"].includes(evt?.target.id)) {
-  maxRepsInput.value = maxReps;
+const weightFromRepsAtOneRepMax = (reps, oneRepMax) => { // calc weight for a provided # of reps based on 1RM 
+  return weightFromRepsAtOneRepMax_Epley(reps, oneRepMax);
 };
-            
-            // TODO: similar foe.other 2 fields, yeah.
-            
-            
-            var maxWeight = weight * ( 1 + ( numReps > 1 ? numReps / 30 : 0) ); // Epley Formula
-            
-            outputTable.innerHTML = ""; // clear the table
-            for (var i = 1; i <= maxReps; i++) {
-                var row = document.createElement("tr");
-                var cellReps = document.createElement("td");
-                var cellWeight = document.createElement("td");
-                cellReps.textContent = i;
-                
-                cellWeight.innerHTML = getEpley(maxWeight, i); // textContent
 
-                row.appendChild(cellReps);
-                row.appendChild(cellWeight);
-                outputTable.appendChild(row);
-                
-            };
-            
-        };
-        
-        
+// const repsFromWeightAtOneRepMax = (weight, oneRepMax) => { // calc # of reps for a provided weight based on 1RM 
+//   return repsFromWeightAtOneRepMax_Epley(weight, oneRepMax);
+// };
 
-        numRepsInput.addEventListener("input", calculate);
-        weightInput.addEventListener("input", calculate);
-        maxRepsInput.addEventListener("input", calculate);
 
-        // Calculate initial values
-        calculate();
-    </script>
+
+const getHtmlWeightFromRepsAndWeight = (reps, weight1RM) => {
+  const weight = weightFromRepsAtOneRepMax(reps, weight1RM);
+  const percentOf1RM = Math.round( ( weight / weight1RM ) * 100, WEIGHT_PERCENT_PLACES );
+  return `${ weight.toFixed(WEIGHT_DISPLAY_PLACES) }&nbsp;&nbsp;<small>(${ percentOf1RM }%)</small>`;
+};
+
+const renderTableBodyRows = (tableBody, numReps, weight, maxReps) => {
+  tableBody.innerHTML = "";
+
+  const weight1RM = oneRepMaxFromRepsAndWeight(numReps, weight);
+
+  for (let reps = 1; reps <= maxReps; reps ++) {
+    const cellReps = Object.assign( doc.createElement("td"), { textContent: reps } );
+    const cellWeight = Object.assign( doc.createElement("td"), { innerHTML: getHtmlWeightFromRepsAndWeight( reps, weight1RM ) } );
+    const row = doc.createElement("tr");
+
+    row.appendChild(cellReps);
+    row.appendChild(cellWeight);
+    tableBody.appendChild(row);
+  };
+
+};
+
+const parseInputValues = changedElementId => {
+
+  const numReps = numRepsInput.valueAsNumber >= 1 ? numRepsInput.valueAsNumber : 1;
+  const weight = weightInput.valueAsNumber >= 1 ? weightInput.valueAsNumber : 100;
+
+  const maxRepsRaw = maxRepsInput.valueAsNumber >= maxRepsInput.min ? maxRepsInput.valueAsNumber : maxRepsInput.placeholder;
+  const maxReps = Math.min( maxRepsRaw, maxRepsInput.max ) | 0;
+
+  qi("maxRepsLabel").innerText = maxRepsLabel.dataset.text.replace("$", maxReps); // data-text="Show ($) rows"
+
+  const validMax = (
+    isNaN(maxRepsInput.value)
+    || maxRepsInput.value >= maxRepsInput.min
+    || false
+  );
+
+  if(validMax ||
+    [ "numReps", "weight" ].includes(changedElementId)
+  ) {
+    maxRepsInput.value = maxReps;
+  };
+
+  return [numReps, weight, maxReps];
+};
+
+const update = evt => {
+  const changedElementId = evt?.target.id;
+  const [numReps, weight, maxReps] = parseInputValues(changedElementId);
+  const outputTableBody = qi("outputTableBody");
+
+  renderTableBodyRows( outputTableBody, numReps, weight, maxReps);
+};
+
+const init = () => {
+  [ numRepsInput, weightInput, maxRepsInput]
+  .forEach( el => el.addEventListener("input", update) );
+
+  update();
+};
+
+doc.addEventListener("DOMContentLoaded", init);
+
+</script>
+
 </body>
 </html>
